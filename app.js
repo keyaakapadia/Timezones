@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Overlap — world time planner */
+=======
+/* Overlap — meeting time planner */
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
 (() => {
   "use strict";
 
@@ -45,11 +49,26 @@
 
   function slug(s) { return s.toLowerCase().normalize("NFD").replace(/[^a-z]/g, ""); }
 
+<<<<<<< HEAD
   const PRESETS = [["newyork", "london"], ["sanfrancisco", "london", "bengaluru"], ["newyork", "london", "tokyo"], ["losangeles", "sydney"]];
   const HALF = 30 * 60000;
   const HOUR = 3600000;
   const WORK_START = 9, WORK_END = 17;
 
+=======
+  const PRESETS = [
+    ["newyork", "london"],
+    ["sanfrancisco", "london", "bengaluru"],
+    ["newyork", "london", "tokyo"],
+    ["losangeles", "sydney"],
+    ["berlin", "dubai", "singapore"],
+  ];
+
+  const HALF = 30 * 60000;
+  const HOUR = 3600000;
+
+  // ---------- storage ----------
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   const store = {
     get(k, d) { try { const v = localStorage.getItem("overlap." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem("overlap." + k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
@@ -59,6 +78,7 @@
   const myTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const PREFERRED = { "America/New_York": "newyork", "America/Los_Angeles": "losangeles", "America/Chicago": "chicago",
     "America/Sao_Paulo": "saopaulo", "Asia/Kolkata": "mumbai", "Asia/Shanghai": "shanghai", "Europe/Madrid": "madrid" };
+<<<<<<< HEAD
   const ALL_TZ = new Set((Intl.supportedValuesOf ? Intl.supportedValuesOf("timeZone") : []).concat(["UTC"]));
 
   function customCity(tz) {
@@ -81,15 +101,51 @@
     if (wheelBuilt) buildWheel();
     return c;
   }
+=======
+  let me = CITIES.find((c) => c.id === PREFERRED[myTz]) || CITIES.find((c) => c.tz === myTz);
+  if (!me) {
+    me = customCity(myTz);
+    CITIES.push(me);
+  }
+  me.isMe = true;
+  const byId = Object.fromEntries(CITIES.map((c) => [c.id, c]));
+
+  function customCity(tz) {
+    const segs = tz.split("/");
+    return { id: "tz:" + tz, name: segs[segs.length - 1].replace(/_/g, " "), country: segs.length > 1 ? segs[0].replace(/_/g, " ") : "Time zone",
+      tz, major: true, order: 1000, custom: true };
+  }
+  function ensureCity(id) {
+    if (byId[id]) return byId[id];
+    if (id.startsWith("tz:") && ALL_TZ.has(id.slice(3))) {
+      const c = customCity(id.slice(3));
+      CITIES.push(c);
+      byId[c.id] = c;
+      buildWheel();
+      return c;
+    }
+    return null;
+  }
+  const ALL_TZ = new Set((Intl.supportedValuesOf ? Intl.supportedValuesOf("timeZone") : []).concat(["UTC"]));
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
 
   const state = {
     selected: [],
     h12: store.get("h12", true),
     dur: store.get("dur", 60),
+<<<<<<< HEAD
     mode: store.get("mode", "business") === "personal" ? "personal" : "business",
     planDate: null,
     pick: null, // chosen start (ms), null → best suggestion
     hoverCity: null,
+=======
+    ws: store.get("ws", 9),
+    we: store.get("we", 17),
+    planDate: null,
+    pick: null,      // chosen start (ms) or null → use top suggestion
+    hover: null,     // hovered start (ms) on the timeline
+    hoverCity: null, // hovered city on the wheel
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   };
 
   // ---------- time helpers ----------
@@ -121,6 +177,14 @@
     const a = Math.abs(min), h = Math.floor(a / 60), m = a % 60;
     return `UTC${min < 0 ? "−" : "+"}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
   }
+<<<<<<< HEAD
+=======
+  function fmtDiff(min) {
+    if (min === 0) return "same time";
+    const a = Math.abs(min), h = Math.floor(a / 60), m = a % 60;
+    return `${min > 0 ? "+" : "−"}${h}${m ? ":" + String(m).padStart(2, "0") : ""}h`;
+  }
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   function tzAbbr(ms, tz) {
     const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "short" }).formatToParts(new Date(ms));
     return (p.find((x) => x.type === "timeZoneName") || {}).value || "";
@@ -130,8 +194,13 @@
     if (!state.h12) return `${String(h).padStart(2, "0")}:${mm}`;
     return `${h % 12 || 12}:${mm} ${h < 12 ? "am" : "pm"}`;
   }
+<<<<<<< HEAD
   function range(ms, tz) {
     const a = parts(ms, tz), b = parts(ms + state.dur * 60000, tz);
+=======
+  function range(ms, durMin, tz) {
+    const a = parts(ms, tz), b = parts(ms + durMin * 60000, tz);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     if (state.h12 && (a.h < 12) === (b.h < 12) && !(b.h === 0 && b.mi === 0)) {
       return `${a.h % 12 || 12}:${String(a.mi).padStart(2, "0")} – ${hm(b.h, b.mi)}`;
     }
@@ -167,6 +236,7 @@
     return STOPS[0][1];
   }
   const hourColor = (h) => `rgb(${hourRgb(h).join(",")})`;
+<<<<<<< HEAD
 
   // Page background follows your local sky: a pale wash by day, deep and dark at night.
   const TINT = 0.28;
@@ -190,6 +260,9 @@
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = `rgb(${bg})`;
   }
+=======
+  const isDark = (h) => { const [r, g, b] = hourRgb(h); return 0.299 * r + 0.587 * g + 0.114 * b < 150; };
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   function dayWord(h) {
     h = ((h % 24) + 24) % 24;
     if (h >= 5 && h < 8) return "sunrise";
@@ -199,6 +272,7 @@
   }
 
   // ---------- scoring ----------
+<<<<<<< HEAD
   const MODES = {
     business: {
       status: ["Asleep", "Early / late", "Just outside work hours", "Work hours"],
@@ -244,6 +318,27 @@
   }
   const selectedCities = () => state.selected.map((id) => byId[id]).filter(Boolean);
 
+=======
+  const STATUS = ["Asleep", "Early / late", "Just outside work hours", "Work hours"];
+  const QUALITY = ["Someone’s asleep", "Workable", "Good", "Great"];
+  const QCOLOR = ["var(--muted)", "var(--stretch)", "var(--flex)", "var(--work)"];
+
+  function hourScore(h) {
+    h = ((h % 24) + 24) % 24;
+    const { ws, we } = state;
+    if (h >= ws && h < we) return 3;
+    if ((h >= ws - 1 && h < ws) || (h >= we && h < we + 2)) return 2;
+    if ((h >= ws - 2 && h < ws - 1) || (h >= we + 2 && h < we + 5)) return 1;
+    return 0;
+  }
+  function blockScore(ms, tz) {
+    const p = parts(ms, tz);
+    let score = hourScore(p.h + p.mi / 60);
+    const weekend = p.wd === "Sat" || p.wd === "Sun";
+    if (weekend) score = Math.min(score, 1);
+    return { score, weekend };
+  }
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   function evalWindow(t, cities) {
     const n = state.dur / 30;
     const per = cities.map((c) => {
@@ -257,6 +352,10 @@
     });
     return { t, per, min: Math.min(...per.map((x) => x.score)), sum: per.reduce((a, x) => a + x.score, 0) };
   }
+<<<<<<< HEAD
+=======
+  const selectedCities = () => state.selected.map((id) => byId[id]).filter(Boolean);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
 
   function suggestions() {
     const cities = selectedCities();
@@ -269,8 +368,14 @@
     const picked = [];
     for (const c of cands) {
       if (picked.every((p) => Math.abs(p.k - c.k) >= n)) picked.push(c);
+<<<<<<< HEAD
       if (picked.length === 3) break;
     }
+=======
+      if (picked.length === 4) break;
+    }
+    // Don't pad the list with bad options when good ones exist
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const floor = Math.max(1, picked[0].min - 1);
     return picked.filter((p, i) => i === 0 || p.min >= floor);
   }
@@ -292,11 +397,20 @@
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(toastTimer);
+<<<<<<< HEAD
     toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
   }
   async function copy(text) {
     try { await navigator.clipboard.writeText(text); }
     catch {
+=======
+    toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
       const ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
@@ -310,7 +424,10 @@
   const R_LINE = 244, R_RING_IN = 250, R_RING_OUT = 262, R_TICK_OUT = 274, R_LABEL = 281;
   const svg = $("wheel");
   const W = { angle: {}, segs: {}, labels: {} };
+<<<<<<< HEAD
   let wheelBuilt = false;
+=======
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   const pt = (a, r) => [r * Math.sin(a), -r * Math.cos(a)];
 
   function curve(a, b) {
@@ -324,7 +441,10 @@
   }
 
   function buildWheel() {
+<<<<<<< HEAD
     wheelBuilt = true;
+=======
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     svg.innerHTML = "";
     const t = Date.now();
     const ordered = [...CITIES].sort((a, b) => offsetMin(t, a.tz) - offsetMin(t, b.tz) || a.order - b.order);
@@ -365,8 +485,17 @@
     updateWheel();
   }
 
+<<<<<<< HEAD
   function updateWheel() {
     const t = Date.now();
+=======
+  // The ring shows the hovered/picked time, or live time when nothing is picked.
+  function wheelTime() { return state.hover ?? (state.pick ?? null); }
+
+  function updateWheel() {
+    const preview = wheelTime();
+    const t = preview ?? Date.now();
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     for (const c of CITIES) {
       if (!W.segs[c.id]) continue;
       W.segs[c.id].setAttribute("fill", hourColor(hourOf(t, c.tz)));
@@ -377,6 +506,14 @@
     for (let i = 0; i < s.length; i++) for (let j = i + 1; j < s.length; j++) d += curve(s[i], s[j]);
     W.links.innerHTML = "";
     if (d) el("path", { d }, W.links);
+<<<<<<< HEAD
+=======
+
+    const p = parts(t, myTz);
+    $("wheelStatus").innerHTML = preview == null
+      ? `<span class="live"></span>Live · ${hm(p.h, p.mi)} your time`
+      : `<span class="prev"></span>Showing ${p.wd} ${hm(p.h, p.mi)} your time`;
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   }
 
   function renderHot() {
@@ -388,14 +525,25 @@
   }
 
   function showTip(g, c) {
+<<<<<<< HEAD
     const t = Date.now();
+=======
+    const t = wheelTime() ?? Date.now();
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const p = parts(t, c.tz);
     const box = g.querySelector("text").getBoundingClientRect();
     const wrap = svg.parentElement.getBoundingClientRect();
     const tip = $("tip");
+<<<<<<< HEAD
     tip.innerHTML = `<b>${esc(c.name)}</b>${c.isMe ? " · you" : ""} <span class="m">${esc(c.country)}</span>
       <div class="t">${hm(p.h, p.mi)} <span class="m" style="font-size:12px">${p.wd}</span></div>
       <div class="m">${dayWord(p.h + p.mi / 60)} · ${fmtOffset(offsetMin(t, c.tz))}</div>`;
+=======
+    const sel = state.selected.includes(c.id);
+    tip.innerHTML = `<b>${esc(c.name)}</b>${c.isMe ? " · you" : ""} <span class="m">${esc(c.country)}</span>
+      <div class="t">${hm(p.h, p.mi)} <span class="m" style="font-size:12px">${p.wd}</span></div>
+      <div class="m">${dayWord(p.h + p.mi / 60)} · ${fmtOffset(offsetMin(t, c.tz))} · ${sel ? "click to remove" : "click to add"}</div>`;
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     tip.hidden = false;
     tip.style.left = Math.min(Math.max(box.left + box.width / 2 - wrap.left, 90), wrap.width - 90) + "px";
     tip.style.top = Math.max(box.top - wrap.top, 70) + "px";
@@ -406,6 +554,7 @@
     const t = Date.now();
     const p = parts(t, myTz);
     const mm = String(p.mi).padStart(2, "0"), ss = String(p.s).padStart(2, "0");
+<<<<<<< HEAD
     $("meCity").textContent = me.name;
     $("meTime").textContent = state.h12
       ? `${p.h % 12 || 12}:${mm}:${ss} ${p.h < 12 ? "AM" : "PM"}`
@@ -417,11 +566,29 @@
   // ---------- selection & persistence ----------
   function toggle(id) {
     if (!ensureCity(id)) return;
+=======
+    $("meTime").textContent = state.h12
+      ? `${p.h % 12 || 12}:${mm}:${ss} ${p.h < 12 ? "AM" : "PM"}`
+      : `${String(p.h).padStart(2, "0")}:${mm}:${ss}`;
+    $("meCity").textContent = me.name;
+    const date = new Intl.DateTimeFormat("en-US", { timeZone: myTz, weekday: "short", month: "short", day: "numeric" }).format(new Date(t));
+    $("meMeta").textContent = `${date} · ${tzAbbr(t, myTz)} (${fmtOffset(offsetMin(t, myTz))})`;
+  }
+
+  // ---------- selection & persistence ----------
+  function toggle(id, silent) {
+    const c = ensureCity(id);
+    if (!c) return;
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const i = state.selected.indexOf(id);
     if (i >= 0) state.selected.splice(i, 1); else state.selected.push(id);
     state.pick = null;
     persist();
     render();
+<<<<<<< HEAD
+=======
+    if (!silent) toast(i >= 0 ? `Removed ${c.name}` : `Added ${c.name}`);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   }
   function setCities(ids) {
     ids.forEach(ensureCity);
@@ -430,21 +597,38 @@
     persist();
     render();
   }
+<<<<<<< HEAD
   function persist() {
     store.set("selected", state.selected);
+=======
+  function hashString() {
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const q = new URLSearchParams();
     if (state.selected.length) q.set("c", state.selected.join(","));
     if (state.planDate !== todayStr()) q.set("d", state.planDate);
     if (state.dur !== 60) q.set("m", state.dur);
+<<<<<<< HEAD
     if (state.mode !== "business") q.set("k", state.mode);
     const h = q.toString().replace(/%2C/g, ",").replace(/%3A/g, ":").replace(/%2F/g, "/");
+=======
+    if (state.pick != null) q.set("t", String(state.pick));
+    return q.toString().replace(/%2C/g, ",").replace(/%3A/g, ":").replace(/%2F/g, "/");
+  }
+  function persist() {
+    store.set("selected", state.selected);
+    const h = hashString();
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
   }
 
   // ---------- search ----------
   const search = $("search");
   const results = $("results");
+<<<<<<< HEAD
   let items = [];
+=======
+  let resultItems = [];
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   let active = 0;
 
   function runSearch() {
@@ -455,6 +639,7 @@
       .sort((a, b) => (b.name.toLowerCase().startsWith(q) - a.name.toLowerCase().startsWith(q)) || a.name.localeCompare(b.name));
     const known = new Set(CITIES.map((c) => c.tz));
     const extra = q.length >= 2
+<<<<<<< HEAD
       ? [...ALL_TZ].filter((tz) => !known.has(tz) && tz.toLowerCase().replace(/_/g, " ").includes(q)).slice(0, 4).map(customCity)
       : [];
     items = [...hits.slice(0, 7), ...extra];
@@ -466,24 +651,56 @@
           <span class="r-sub"> · ${esc(c.country)}</span></span>
         <span class="r-time">${hm(p.h, p.mi)}</span></li>`;
     }).join("") : `<li class="none">No match for “${esc(search.value)}”</li>`;
+=======
+      ? [...ALL_TZ].filter((tz) => !known.has(tz) && tz.toLowerCase().replace(/_/g, " ").includes(q)).slice(0, 5).map(customCity)
+      : [];
+    resultItems = [...hits.slice(0, 8), ...extra];
+    active = 0;
+    results.innerHTML = resultItems.length ? resultItems.map((c, i) => {
+      const p = parts(t, c.tz);
+      const sel = state.selected.includes(c.id);
+      return `<li role="option" data-i="${i}" class="${i === active ? "active" : ""}">
+        <span class="r-name">${esc(c.name)}${sel ? '<span class="check">✓ added</span>' : ""}</span>
+        <span class="r-time">${hm(p.h, p.mi)}<small>${p.wd}</small></span>
+        <span class="r-sub">${esc(c.country)} · ${fmtOffset(offsetMin(t, c.tz))}${c.custom ? " · " + esc(c.tz) : ""}</span>
+      </li>`;
+    }).join("") : `<li class="empty-r">No city or time zone matches “${esc(search.value)}”</li>`;
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     results.hidden = false;
     search.setAttribute("aria-expanded", "true");
   }
   function closeResults() { results.hidden = true; search.setAttribute("aria-expanded", "false"); }
   function choose(i) {
+<<<<<<< HEAD
     const c = items[i];
     if (!c) return;
     if (c.custom && !byId[c.id]) { CITIES.push(c); byId[c.id] = c; buildWheel(); }
     if (!state.selected.includes(c.id)) toggle(c.id);
+=======
+    const c = resultItems[i];
+    if (!c) return;
+    if (c.custom && !byId[c.id]) { CITIES.push(c); byId[c.id] = c; buildWheel(); }
+    if (!state.selected.includes(c.id)) toggle(c.id);
+    else toast(`${c.name} is already added`);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     search.value = "";
     closeResults();
   }
   function setActive(i) {
+<<<<<<< HEAD
     if (!items.length) return;
     active = (i + items.length) % items.length;
     results.querySelectorAll("li[data-i]").forEach((li) => li.classList.toggle("active", +li.dataset.i === active));
   }
   search.addEventListener("input", runSearch);
+=======
+    active = (i + resultItems.length) % resultItems.length;
+    results.querySelectorAll("li[data-i]").forEach((li) => li.classList.toggle("active", +li.dataset.i === active));
+    results.querySelector("li.active")?.scrollIntoView({ block: "nearest" });
+  }
+  search.addEventListener("input", runSearch);
+  search.addEventListener("focus", runSearch);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   search.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setActive(active + 1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive(active - 1); }
@@ -495,6 +712,7 @@
     if (li) { e.preventDefault(); choose(+li.dataset.i); }
   });
   search.addEventListener("blur", () => setTimeout(closeResults, 100));
+<<<<<<< HEAD
   document.addEventListener("keydown", (e) => {
     if (e.key === "/" && document.activeElement !== search) { e.preventDefault(); search.focus(); }
   });
@@ -524,6 +742,39 @@
   $("nextDay").addEventListener("click", () => setDate(shiftDate(state.planDate, 1)));
   $("dateLabel").addEventListener("click", () => setDate(todayStr()));
   $("lengths").addEventListener("click", (e) => {
+=======
+
+  // ---------- toolbar ----------
+  function renderToolbar() {
+    const today = todayStr();
+    const [y, mo, d] = state.planDate.split("-").map(Number);
+    const long = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })
+      .format(new Date(Date.UTC(y, mo - 1, d)));
+    const rel = state.planDate === today ? "Today" : state.planDate === shiftDate(today, 1) ? "Tomorrow"
+      : state.planDate === shiftDate(today, -1) ? "Yesterday" : "";
+    $("dateLabel").textContent = rel ? `${rel}, ${long}` : long;
+    $("planDate").value = state.planDate;
+    $("todayBtn").disabled = state.planDate === today;
+    document.querySelectorAll("#durSeg button").forEach((b) => b.classList.toggle("on", +b.dataset.v === state.dur));
+    document.querySelectorAll("#fmtSeg button").forEach((b) => b.classList.toggle("on", (b.dataset.v === "12") === state.h12));
+    const opt = (h) => `<option value="${h}">${hm(h, 0)}</option>`;
+    $("workStart").innerHTML = [5, 6, 7, 8, 9, 10, 11, 12].map(opt).join("");
+    $("workEnd").innerHTML = [13, 14, 15, 16, 17, 18, 19, 20, 21].map(opt).join("");
+    $("workStart").value = state.ws;
+    $("workEnd").value = state.we;
+  }
+  function setDate(str) {
+    state.planDate = str;
+    state.pick = null;
+    persist();
+    render();
+  }
+  $("prevDay").addEventListener("click", () => setDate(shiftDate(state.planDate, -1)));
+  $("nextDay").addEventListener("click", () => setDate(shiftDate(state.planDate, 1)));
+  $("todayBtn").addEventListener("click", () => setDate(todayStr()));
+  $("planDate").addEventListener("change", (e) => { if (e.target.value) setDate(e.target.value); });
+  $("durSeg").addEventListener("click", (e) => {
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const b = e.target.closest("button");
     if (!b) return;
     state.dur = +b.dataset.v;
@@ -532,23 +783,143 @@
     persist();
     render();
   });
+<<<<<<< HEAD
   $("fmt").addEventListener("click", (e) => {
+=======
+  $("fmtSeg").addEventListener("click", (e) => {
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     const b = e.target.closest("button");
     if (!b) return;
     state.h12 = b.dataset.v === "12";
     store.set("h12", state.h12);
     render();
   });
+<<<<<<< HEAD
   $("modeTabs").addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b || b.dataset.mode === state.mode) return;
     state.mode = b.dataset.mode;
     store.set("mode", state.mode);
     state.pick = null;
+=======
+  $("workStart").addEventListener("change", (e) => { state.ws = +e.target.value; store.set("ws", state.ws); state.pick = null; render(); });
+  $("workEnd").addEventListener("change", (e) => { state.we = +e.target.value; store.set("we", state.we); state.pick = null; render(); });
+  $("shareBtn").addEventListener("click", async () => {
+    persist();
+    await copy(location.href);
+    toast("Link copied — anyone with it sees this plan");
+  });
+  $("clearAll").addEventListener("click", () => { setCities([]); toast("Cleared"); });
+
+  // ---------- timeline ----------
+  const ROW = 50; // row height + gap, keep in sync with --row + margin
+
+  function renderTimeline() {
+    const start = dayStart();
+    const cities = selectedCities();
+    const nowMs = Date.now();
+    const rows = [];
+    if (!state.selected.includes(me.id)) rows.push({ c: me, ref: true });
+    for (const c of cities) rows.push({ c, ref: false });
+
+    let labels = `<div class="tl-head">Your time</div>`;
+    let track = `<div class="axis">${[0, 3, 6, 9, 12, 15, 18, 21].map((h) =>
+      `<span style="left:${(h / 24) * 100}%">${state.h12 ? `${h % 12 || 12}${h < 12 ? "am" : "pm"}` : String(h).padStart(2, "0")}</span>`).join("")}</div>`;
+
+    for (const { c, ref } of rows) {
+      const p = parts(nowMs, c.tz);
+      const diff = offsetMin(start + 12 * HOUR, c.tz) - offsetMin(start + 12 * HOUR, myTz);
+      labels += `<div class="tl-label ${ref ? "ref" : ""}">
+        <div class="n">${esc(c.name)}${c.isMe ? '<span class="badge">You</span>' : ""}</div>
+        <div class="s">${ref ? `Not included <button class="inc" data-add="${c.id}">+ Include</button>`
+          : `${hm(p.h, p.mi)} now · ${c.isMe ? esc(tzAbbr(nowMs, c.tz)) : fmtDiff(diff)}`}</div>
+        ${ref ? "" : `<button class="x" data-rm="${c.id}" aria-label="Remove ${esc(c.name)}" title="Remove">×</button>`}
+      </div>`;
+      track += `<div class="tl-row ${ref ? "ref" : ""}">`;
+      for (let i = 0; i < 24; i++) {
+        const q = parts(start + i * HOUR, c.tz);
+        const h = q.h + q.mi / 60;
+        const midnight = q.h === 0 && i > 0;
+        const main = midnight ? q.wd : state.h12 ? String(q.h % 12 || 12) : String(q.h).padStart(2, "0");
+        const sub = midnight ? (q.mi ? ":" + String(q.mi).padStart(2, "0") : "") :
+          (q.mi ? ":" + String(q.mi).padStart(2, "0") : "") + (state.h12 ? (q.h < 12 ? "am" : "pm") : "");
+        track += `<div class="cell${midnight ? " midnight" : ""}" style="background:${hourColor(h)};color:${isDark(h) ? "#fff" : "#2b2b33"}"
+          title="${esc(c.name)} · ${q.wd} ${hm(q.h, q.mi)}">${main}${sub ? `<small>${sub}</small>` : ""}</div>`;
+      }
+      track += `</div>`;
+    }
+
+    // availability bar for the whole group
+    if (cities.length >= 2) {
+      labels += `<div class="tl-fit-label muted">Availability</div>`;
+      track += `<div class="fit">`;
+      for (let k = 0; k < 48; k++) {
+        const t = start + k * HALF;
+        const s = Math.min(...cities.map((c) => blockScore(t, c.tz).score));
+        track += `<span class="s${s}" title="${hm(...hmOf(t))} · ${QUALITY[s]}"></span>`;
+      }
+      track += `</div>`;
+    }
+
+    const h = rows.length * ROW - 4;
+    const pct = (ms) => ((ms - start) / (24 * HOUR)) * 100;
+    const w = (state.dur / 1440) * 100;
+    const sugs = suggestions();
+    const chosen = state.pick ?? sugs[0]?.t ?? null;
+    if (sugs[0] && sugs[0].t !== chosen) track += `<div class="ov best" style="left:${pct(sugs[0].t)}%;width:${w}%;height:${h}px"></div>`;
+    if (chosen != null && cities.length >= 2) {
+      track += `<div class="ov sel" style="left:${pct(chosen)}%;width:${w}%;height:${h}px"><span class="flag">${range(chosen, state.dur, myTz)}</span></div>`;
+    }
+    if (nowMs >= start && nowMs < start + 24 * HOUR) track += `<div class="ov now" style="left:${pct(nowMs)}%;height:${h}px" title="Now"></div>`;
+    track += `<div class="ov hover" id="hoverOv" hidden style="width:${w}%;height:${h}px"><span class="flag"></span></div>`;
+
+    $("timeline").innerHTML = `<div class="tl"><div class="tl-labels">${labels}</div><div class="tl-track" id="track">${track}</div></div>`;
+    $("planMeta").textContent = cities.length
+      ? `${cities.length} ${cities.length === 1 ? "place" : "places"} · ${durLabel()} meeting`
+      : "Add places to compare";
+  }
+
+  function hmOf(ms) { const p = parts(ms, myTz); return [p.h, p.mi]; }
+  const durLabel = () => ({ 30: "30 min", 60: "1 hour", 90: "1.5 hour", 120: "2 hour" })[state.dur];
+
+  function trackStart(e) {
+    const track = $("track");
+    const r = track.getBoundingClientRect();
+    const n = state.dur / 30;
+    let k = Math.floor(((e.clientX - r.left) / r.width) * 48);
+    k = Math.max(0, Math.min(48 - n, k));
+    return dayStart() + k * HALF;
+  }
+  $("timeline").addEventListener("mousemove", (e) => {
+    if (!e.target.closest("#track") || selectedCities().length < 2) return;
+    const t = trackStart(e);
+    if (t === state.hover) return;
+    state.hover = t;
+    const ov = $("hoverOv");
+    ov.hidden = false;
+    ov.style.left = ((t - dayStart()) / (24 * HOUR)) * 100 + "%";
+    ov.querySelector(".flag").textContent = range(t, state.dur, myTz);
+    updateWheel();
+  });
+  $("timeline").addEventListener("mouseleave", () => {
+    state.hover = null;
+    const ov = $("hoverOv");
+    if (ov) ov.hidden = true;
+    updateWheel();
+  });
+  $("timeline").addEventListener("click", (e) => {
+    const rm = e.target.closest("[data-rm]");
+    if (rm) { toggle(rm.dataset.rm); return; }
+    const add = e.target.closest("[data-add]");
+    if (add) { toggle(add.dataset.add); return; }
+    if (!e.target.closest("#track") || selectedCities().length < 2) return;
+    state.pick = trackStart(e);
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     persist();
     render();
   });
 
+<<<<<<< HEAD
   // ---------- result ----------
   const durLabel = () => ({ 30: "30 min", 60: "1 hour", 90: "1.5 hours", 120: "2 hours" })[state.dur];
 
@@ -669,12 +1040,139 @@
     renderResult();
   }
 
+=======
+  // ---------- suggestions ----------
+  function renderSuggestions() {
+    const box = $("suggestions");
+    const cities = selectedCities();
+    if (cities.length < 2) {
+      box.innerHTML = `<p class="empty">${cities.length
+        ? `<b>${esc(cities[0].name)}</b> is added. Add at least one more place — click a city on the wheel or search above.`
+        : "Add two or more places to see the best times to meet."}</p>
+        <div class="presets">${PRESETS.map((ids) => `<button class="chip" data-preset="${ids.join(",")}">${ids.map((id) => esc(byId[id].name)).join(" · ")}</button>`).join("")}</div>`;
+      return;
+    }
+    const sugs = suggestions();
+    const chosen = state.pick ?? sugs[0]?.t;
+    box.innerHTML = `<div class="sugs">${sugs.map((s, i) => {
+      const others = s.per.filter((x) => !x.c.isMe).slice(0, 3)
+        .map((x) => `${esc(x.c.name)} ${hm(...(() => { const p = parts(s.t, x.c.tz); return [p.h, p.mi]; })())}`).join(" · ");
+      return `<button class="sug${s.t === chosen ? " on" : ""}" data-t="${s.t}">
+        <span class="rk">${i + 1}</span>
+        <span class="tm">${range(s.t, state.dur, myTz)}</span>
+        <span class="q" style="color:${QCOLOR[s.min]}"><span class="dot" style="background:${QCOLOR[s.min]}"></span>${QUALITY[s.min]}</span>
+        <span class="who">${others}</span>
+      </button>`;
+    }).join("")}</div>`;
+  }
+  $("suggestions").addEventListener("click", (e) => {
+    const p = e.target.closest("[data-preset]");
+    if (p) { setCities(p.dataset.preset.split(",")); return; }
+    const s = e.target.closest("[data-t]");
+    if (s) { state.pick = +s.dataset.t; persist(); render(); }
+  });
+
+  // ---------- selected time ----------
+  function currentPlan() {
+    const cities = selectedCities();
+    if (cities.length < 2) return null;
+    const t = state.pick ?? suggestions()[0]?.t;
+    return t == null ? null : evalWindow(t, cities);
+  }
+  function planText(plan) {
+    const p = parts(plan.t, myTz);
+    const lines = plan.per.map((x) => {
+      const q = parts(plan.t, x.c.tz);
+      return `${x.c.name}: ${range(plan.t, state.dur, x.c.tz)} (${q.wd})`;
+    });
+    return `Meeting · ${durLabel()} · ${p.wd} ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: myTz }).format(new Date(plan.t))}\n${lines.join("\n")}`;
+  }
+  const icsDate = (ms) => new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+  function renderSelection() {
+    const box = $("selection");
+    const plan = currentPlan();
+    if (!plan) {
+      box.innerHTML = `<p class="empty">Pick a suggestion or click the timeline, and the details for everyone will show up here.</p>`;
+      return;
+    }
+    const p = parts(plan.t, myTz);
+    const date = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: myTz }).format(new Date(plan.t));
+    const end = plan.t + state.dur * 60000;
+    const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Meeting")}` +
+      `&dates=${icsDate(plan.t)}/${icsDate(end)}&details=${encodeURIComponent(planText(plan))}`;
+    box.innerHTML = `
+      <div class="sel-when">${range(plan.t, state.dur, myTz)}</div>
+      <div class="sel-sub">${esc(date)} · your time · <span class="q-${plan.min}">${QUALITY[plan.min]}</span></div>
+      <ul class="people">${plan.per.map((x) => {
+        const q = parts(plan.t, x.c.tz);
+        return `<li><span class="nm">${esc(x.c.name)}${x.c.isMe ? '<span class="badge">You</span>' : ""}</span>
+          <span class="tm">${range(plan.t, state.dur, x.c.tz)}</span>
+          <span class="st q-${x.score}">${x.weekend ? "Weekend" : STATUS[x.score]}</span>
+          <span class="dy">${q.wd}${q.d !== p.d ? (q.d > p.d || (q.d === 1 && p.d > 27) ? " · next day" : " · previous day") : ""}</span></li>`;
+      }).join("")}</ul>
+      <div class="actions">
+        <button class="btn primary" id="copyBtn">Copy times</button>
+        <a class="btn" href="${gcal}" target="_blank" rel="noopener">Google Calendar</a>
+        <button class="btn" id="icsBtn">Download .ics</button>
+      </div>`;
+  }
+  $("selection").addEventListener("click", async (e) => {
+    const plan = currentPlan();
+    if (!plan) return;
+    if (e.target.closest("#copyBtn")) {
+      await copy(planText(plan));
+      toast("Times copied — paste them anywhere");
+    } else if (e.target.closest("#icsBtn")) {
+      const ics = [
+        "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Overlap//EN", "BEGIN:VEVENT",
+        `UID:${plan.t}-${state.selected.join("-")}@overlap`, `DTSTAMP:${icsDate(Date.now())}`,
+        `DTSTART:${icsDate(plan.t)}`, `DTEND:${icsDate(plan.t + state.dur * 60000)}`,
+        "SUMMARY:Meeting", `DESCRIPTION:${planText(plan).replace(/\n/g, "\\n").replace(/,/g, "\\,")}`,
+        "END:VEVENT", "END:VCALENDAR",
+      ].join("\r\n");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+      a.download = "meeting.ics";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast("Calendar file downloaded");
+    }
+  });
+
+  // ---------- keyboard ----------
+  document.addEventListener("keydown", (e) => {
+    const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName);
+    if ((e.key === "/" && !typing) || (e.key === "k" && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault();
+      search.focus();
+      return;
+    }
+    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "ArrowLeft") setDate(shiftDate(state.planDate, -1));
+    else if (e.key === "ArrowRight") setDate(shiftDate(state.planDate, 1));
+    else if (e.key === "t" || e.key === "T") setDate(todayStr());
+  });
+
+  // ---------- render ----------
+  function render() {
+    renderToolbar();
+    updateMe();
+    updateWheel();
+    renderTimeline();
+    renderSuggestions();
+    renderSelection();
+  }
+
+  // ---------- init ----------
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
   function init() {
     const q = new URLSearchParams(location.hash.slice(1));
     const legacy = !q.has("c") && location.hash.length > 1 && !location.hash.includes("=") ? location.hash.slice(1) : null;
     const fromHash = (q.get("c") || legacy || "").split(",").map(decodeURIComponent).filter(Boolean);
     state.planDate = /^\d{4}-\d{2}-\d{2}$/.test(q.get("d") || "") ? q.get("d") : todayStr();
     if ([30, 60, 90, 120].includes(+q.get("m"))) state.dur = +q.get("m");
+<<<<<<< HEAD
     if (q.get("k") === "personal" || q.get("k") === "business") state.mode = q.get("k");
 
     const saved = fromHash.length ? fromHash : store.get("selected", []);
@@ -682,13 +1180,28 @@
     state.selected = saved.filter((id) => byId[id]);
     applyTint();
     buildWheel();
+=======
+
+    buildWheel();
+    const saved = fromHash.length ? fromHash : store.get("selected", null);
+    (saved ?? [me.id]).forEach(ensureCity);
+    state.selected = (saved ?? [me.id]).filter((id) => byId[id]);
+    if (q.get("t") && Number.isFinite(+q.get("t"))) state.pick = +q.get("t");
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     render();
 
     setInterval(updateMe, 1000);
     let lastMinute = Math.floor(Date.now() / 60000);
     setInterval(() => {
       const m = Math.floor(Date.now() / 60000);
+<<<<<<< HEAD
       if (m !== lastMinute) { lastMinute = m; applyTint(); updateWheel(); renderResult(); }
+=======
+      if (m === lastMinute) return;
+      lastMinute = m;
+      updateWheel();
+      renderTimeline();
+>>>>>>> 893bd5dbf673f359b96867bc07246c4339e6498e
     }, 5000);
   }
 
