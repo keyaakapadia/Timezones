@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Overlap — World Time Planner</title>
+  <meta name="description" content="Pick cities around the circle and find the best time for everyone to connect." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='12' cy='16' r='9' fill='none' stroke='%23e8308a' stroke-width='3'/%3E%3Ccircle cx='20' cy='16' r='9' fill='none' stroke='%23000' stroke-width='3'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="me">
+      <div>📍<span id="meCity">—</span></div>
+      <div><span id="meTime">--:--</span> <span class="dim" id="meMeta"></span></div>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <aside class="panel">
+      <p class="intro">Every major city, arranged around the clock by time zone. Pick two or more to find a time that works for everyone.</p>
+
+      <div class="tabs" id="modeTabs" role="tablist" aria-label="Kind of meeting">
+        <button role="tab" data-mode="business">Business</button>
+        <button role="tab" data-mode="personal">Personal</button>
+      </div>
+
+      <div class="search">
+        <input id="search" type="text" placeholder="Add a city…" autocomplete="off" spellcheck="false"
+               role="combobox" aria-expanded="false" aria-controls="results" />
+        <ul class="results" id="results" role="listbox" hidden></ul>
+      </div>
+
+      <dl class="settings">
+        <dt>Day</dt>
+        <dd class="days">
+          <button id="prevDay" aria-label="Previous day">←</button>
+          <button id="dateLabel" title="Back to today">Today</button>
+          <button id="nextDay" aria-label="Next day">→</button>
+        </dd>
+        <dt>Length</dt>
+        <dd class="lengths" id="lengths">
+          <button data-v="30">30m</button><button data-v="60">1h</button><button data-v="90">1.5h</button><button data-v="120">2h</button>
+        </dd>
+        <dt>Clock</dt>
+        <dd class="lengths" id="fmt">
+          <button data-v="12">12h</button><button data-v="24">24h</button>
+        </dd>
+      </dl>
+    </aside>
+
+    <div class="stage">
+      <svg id="wheel" viewBox="-420 -420 840 840" role="img" aria-label="Cities of the world arranged by time zone"></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+  </header>
+
+  <main class="times" id="times">
+    <div class="times-head">
+      <h2>Suggested times</h2>
+      <p class="dim" id="timesMeta"></p>
+    </div>
+
+    <div id="result"></div>
+  </main>
+
+  <footer class="foot">
+    <div>
+      <p class="eyebrow">How it’s scored</p>
+      <p id="scoringText"></p>
+    </div>
+    <div class="foot-right">
+      <p class="dim">Overlap © 2026</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
