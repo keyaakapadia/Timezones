@@ -560,11 +560,12 @@
 
   // Copy times: the picked slot plus its 1–2 runner-up options, each with every city's local time.
   function copyText(plan, others) {
-    let text = `Best — ${planText(plan)}`;
+    // Mirrors the two columns on screen: "Everyone's time" on the left, "Other options" on the right.
+    let text = `Suggested time — ${planText(plan)}`;
     if (others && others.length) {
-      text += "\n\n" + others.map((s) => {
+      text += "\n\nOther options:\n\n" + others.map((s) => {
         const date = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: myTz }).format(new Date(s.t));
-        return `Also works — ${range(s.t, myTz)} · ${date}\n` +
+        return `${range(s.t, myTz)} · ${date}\n` +
           s.per.map((x) => `${x.c.name}: ${range(s.t, x.c.tz)} (${parts(s.t, x.c.tz).wd})`).join("\n");
       }).join("\n\n");
     }
