@@ -557,6 +557,19 @@
     return `Meeting · ${date} · ${durLabel()}\n` +
       plan.per.map((x) => `${x.c.name}: ${range(plan.t, x.c.tz)} (${parts(plan.t, x.c.tz).wd})`).join("\n");
   }
+
+  // Copy times: the picked slot plus its 1–2 runner-up options, each with every city's local time.
+  function copyText(plan, others) {
+    let text = `Best — ${planText(plan)}`;
+    if (others && others.length) {
+      text += "\n\n" + others.map((s) => {
+        const date = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: myTz }).format(new Date(s.t));
+        return `Also works — ${range(s.t, myTz)} · ${date}\n` +
+          s.per.map((x) => `${x.c.name}: ${range(s.t, x.c.tz)} (${parts(s.t, x.c.tz).wd})`).join("\n");
+      }).join("\n\n");
+    }
+    return text;
+  }
   const icsDate = (ms) => new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
   const listNames = (names) => names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
@@ -643,6 +656,7 @@
       </div></div></div>`;
     out.innerHTML = html;
     out._plan = plan;
+    out._others = others;
   }
 
   $("result").addEventListener("click", async (e) => {
@@ -653,7 +667,7 @@
     if (rm) { toggle(rm.dataset.rm); return; }
     const alt = t.closest("[data-t]");
     if (alt) { state.pick = +alt.dataset.t; render(); return; }
-    if (t.closest("#copyBtn")) { await copy(planText($("result")._plan)); toast("Times copied"); }
+    if (t.closest("#copyBtn")) { await copy(copyText($("result")._plan, $("result")._others)); toast("Times copied"); }
     if (t.closest("#shareBtn")) { persist(); await copy(location.href); toast("Link copied"); }
   });
   $("result").addEventListener("keydown", (e) => {
