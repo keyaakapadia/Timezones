@@ -560,10 +560,10 @@
 
   // Copy times: the picked slot plus its 1–2 runner-up options, each with every city's local time.
   function copyText(plan, others) {
-    // Mirrors the two columns on screen: "Everyone's time" on the left, "Other options" on the right.
-    let text = `Suggested time — ${planText(plan)}`;
+    // Mirrors the two columns on screen: "Everyone's time" on the left, "Other suggested times" on the right.
+    let text = `Recommended time — ${planText(plan)}`;
     if (others && others.length) {
-      text += "\n\nOther options:\n\n" + others.map((s) => {
+      text += "\n\nOther suggested times:\n\n" + others.map((s) => {
         const date = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: myTz }).format(new Date(s.t));
         return `${range(s.t, myTz)} · ${date}\n` +
           s.per.map((x) => `${x.c.name}: ${range(s.t, x.c.tz)} (${parts(s.t, x.c.tz).wd})`).join("\n");
@@ -613,7 +613,7 @@
     const myDay = parts(t, myTz);
     const longDate = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: myTz }).format(new Date(t));
 
-    let html = `<p class="headline">${range(t, myTz)} ${t === sugs[0].t ? "works best" : "also works"} for ${esc(listNames(cities.map((c) => c.name)))}.
+    let html = `<p class="headline">${range(t, myTz)} is ${t === sugs[0].t ? "the recommended time" : "a suggested time"} for ${esc(listNames(cities.map((c) => c.name)))}.
         <span class="soft">${esc(reason(plan))}</span></p>
       <div class="meta"><span><span class="dot" style="background:${QCOLOR[plan.min]}"></span>${M().quality[plan.min]}</span>
         <span>·</span><span>Your time</span><span>·</span><span>${esc(longDate)}</span><span>·</span><span>${durLabel()}</span></div>
@@ -637,7 +637,7 @@
     const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Meeting")}` +
       `&dates=${icsDate(t)}/${icsDate(t + state.dur * 60000)}&details=${encodeURIComponent(planText(plan))}`;
     if (others.length) {
-      html += `<p class="eyebrow">Other options</p><ul class="rows">${others.map((s) => {
+      html += `<p class="eyebrow">Other suggested times</p><ul class="rows">${others.map((s) => {
         const who = s.per.filter((x) => !x.c.isMe).slice(0, 2).map((x) => {
           const p = parts(s.t, x.c.tz);
           return `${esc(x.c.name)} ${hm(p.h, p.mi)}`;
@@ -648,7 +648,7 @@
         </li>`;
       }).join("")}</ul>`;
     } else {
-      html += `<p class="eyebrow">Other options</p><p class="dim" style="font-size:16px">This is the only good slot on this day.</p>`;
+      html += `<p class="eyebrow">Other suggested times</p><p class="dim" style="font-size:16px">This is the only good slot on this day.</p>`;
     }
     html += `<div class="links-row">
         <button id="copyBtn">Copy times</button>
