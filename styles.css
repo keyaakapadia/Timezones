@@ -231,6 +231,8 @@ p { margin: 0; }
   .meta { margin-top: 18px; }
   .cols { gap: 32px; }
   .links-row { gap: 20px; margin-top: 28px; }
+  /* 16px stops iOS Safari from zooming the page in when the field is focused */
+  .search input { font-size: 16px; padding: 8px 0; }
 }
 
 /* Touch screens: there's no hover, so actions that only appeared on hover

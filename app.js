@@ -353,7 +353,7 @@
       }, labels);
       el("line", { class: "tick", x1: R_RING_OUT + 3, x2: R_TICK_OUT, y1: 0, y2: 0 }, g);
       const inner = el("g", { transform: `translate(${R_LABEL},0)${flip ? " rotate(180)" : ""}` }, g);
-      el("rect", { class: "hit", x: flip ? -170 : -10, y: -11, width: 180, height: 22 }, inner);
+      el("rect", { class: "hit", x: flip ? -170 : -10, y: -12, width: 180, height: 24 }, inner);
       const text = el("text", { dy: "0.35em", "text-anchor": flip ? "end" : "start" }, inner);
       text.textContent = c.name;
       g.addEventListener("click", () => toggle(c.id));
