@@ -37,7 +37,7 @@
   color-scheme: dark;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
 html, body { margin: 0; }
 body {
@@ -51,6 +51,7 @@ body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "tnum" 1;
   overflow-x: hidden;
+  touch-action: manipulation;
 }
 button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
@@ -206,18 +207,43 @@ p { margin: 0; }
 
 /* ---------- smaller screens ---------- */
 @media (max-width: 900px) {
-  .hero { grid-template-columns: 1fr; min-height: 0; gap: 8px; }
+  .hero { grid-template-columns: 1fr; min-height: 0; gap: 20px; }
   .stage { order: -1; }
   #wheel { height: auto; min-height: 0; aspect-ratio: 1; }
   .panel { align-self: start; }
-  .results { left: -10px; right: -10px; }
-  .times { padding-top: 96px; }
-  .times-head { margin-bottom: 40px; }
-  .cols { grid-template-columns: 1fr; margin-top: 72px; }
-  .foot { grid-template-columns: 1fr; padding-top: 120px; }
+  .results { left: -10px; right: -10px; max-height: min(320px, 50vh); }
+  .times { padding-top: 64px; }
+  .times-head { margin-bottom: 32px; }
+  .cols { grid-template-columns: 1fr; margin-top: 56px; gap: 40px; }
+  .foot { grid-template-columns: 1fr; padding-top: 72px; gap: 24px; }
   .foot-right { justify-self: start; text-align: left; }
   .foot-right p { margin-left: 0; }
   .rows li.pick { grid-template-columns: 1fr; }
   .rows li.pick .right { text-align: left; order: 3; }
   .rows li.pick > span:empty { display: none; }
+}
+
+@media (max-width: 640px) {
+  .nav { padding: 20px var(--gutter) 16px; }
+  .nav .me { font-size: 13px; }
+  .hero { padding-bottom: 20px; }
+  .headline { font-size: clamp(30px, 8vw, 40px); }
+  .meta { margin-top: 18px; }
+  .cols { gap: 32px; }
+  .links-row { gap: 20px; margin-top: 28px; }
+}
+
+/* Touch screens: there's no hover, so actions that only appeared on hover
+   need to stay visible, and small text-only controls need a bigger, invisible
+   tap area rather than a bigger visible one. */
+@media (hover: none) {
+  .rows .rm { opacity: 1; }
+}
+@media (pointer: coarse) {
+  #prevDay, #nextDay, #dateLabel, .lengths button, .rows .rm,
+  .links-row button, .links-row a {
+    padding: 10px 4px;
+    margin: -10px -4px;
+  }
+  .tabs button { padding: 8px 2px; margin: -8px -2px 4px; }
 }
