@@ -84,6 +84,35 @@ p { margin: 0; }
 .panel { align-self: end; display: flex; flex-direction: column; gap: 28px; padding-bottom: 8px; position: relative; z-index: 2; }
 .intro { font-size: 14px; line-height: 1.35; }
 
+/* ---------- mobile entry screen ---------- */
+.splash {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg); transition: background-color 2s ease, color 1s ease;
+  flex-direction: column; justify-content: center;
+  padding: var(--gutter);
+  gap: 24px;
+}
+.splash h1 {
+  margin: 0; font-family: var(--sans); font-weight: 600;
+  font-size: clamp(44px, 14vw, 64px); letter-spacing: -0.03em; line-height: 1;
+}
+.splash p { max-width: 32em; font-size: 16px; line-height: 1.4; color: var(--dim); }
+.splash button {
+  align-self: flex-start; font-size: 16px; font-weight: 500;
+  padding: 10px 6px 8px; margin: 8px -6px -8px 0;
+  border-bottom: 1.5px solid var(--text);
+}
+.splash button span { display: inline-block; transition: transform 0.15s; }
+.splash button:active span { transform: translateX(3px); }
+.splash.hide { opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+
+@media (max-width: 640px) {
+  .splash { display: flex; }
+  body.has-splash { overflow: hidden; }
+  .panel .intro { display: none; }
+}
+
 .tabs { display: flex; gap: 20px; font-size: 16px; }
 .tabs button { color: var(--faint); padding-bottom: 4px; border-bottom: 1.5px solid transparent; transition: color 0.15s, border-color 0.15s; }
 .tabs button:hover { color: var(--dim); }
@@ -242,10 +271,10 @@ p { margin: 0; }
   .rows .rm { opacity: 1; }
 }
 @media (pointer: coarse) {
-  #prevDay, #nextDay, #dateLabel, .lengths button, .rows .rm,
-  .links-row button, .links-row a {
+  #prevDay, #nextDay, #dateLabel, .links-row button, .links-row a, .lengths button {
     padding: 10px 4px;
     margin: -10px -4px;
   }
+  .rows .rm { padding: 10px 4px; margin: -10px -4px -10px 4px; }
   .tabs button { padding: 8px 2px; margin: -8px -2px 4px; }
 }

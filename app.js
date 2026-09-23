@@ -707,5 +707,24 @@
     }, 5000);
   }
 
+  // ---------- mobile entry screen ----------
+  function initSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+    let seen = false;
+    try { seen = sessionStorage.getItem("overlap.splashSeen") === "1"; } catch { /* private mode: show it every time */ }
+    if (seen) { splash.remove(); return; }
+    if (getComputedStyle(splash).display !== "none") document.body.classList.add("has-splash");
+    const dismiss = () => {
+      splash.classList.add("hide");
+      document.body.classList.remove("has-splash");
+      try { sessionStorage.setItem("overlap.splashSeen", "1"); } catch { /* ignore */ }
+      setTimeout(() => splash.remove(), 300);
+    };
+    splash.addEventListener("click", dismiss);
+    document.getElementById("splashEnter").addEventListener("click", (e) => { e.stopPropagation(); dismiss(); });
+  }
+  initSplash();
+
   init();
 })();
